@@ -1,0 +1,368 @@
+/* 
+  JurisConnect Design System
+  Version: 1.0.0
+  Based on: #2465a7 (Primary Blue)
+*/
+
+:root {
+    /* Color Palette - Primary Blue (#2465a7) */
+    --color-primary-50: #eef6fc;
+    --color-primary-100: #d9eaf7;
+    --color-primary-200: #bad8f0;
+    --color-primary-300: #8cbfe6;
+    --color-primary-400: #569dd6;
+    --color-primary-500: #2465a7;
+    --color-primary-600: #1a4f8a;
+    --color-primary-700: #163f6e;
+    --color-primary-800: #15365a;
+    --color-primary-900: #152e4a;
+
+    /* Neutral / Grays (Slate-like for SaaS) */
+    --color-gray-50: #f8fafc;
+    --color-gray-100: #f1f5f9;
+    --color-gray-200: #e2e8f0;
+    --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #64748b;
+    --color-gray-600: #475569;
+    --color-gray-700: #334155;
+    --color-gray-800: #1e293b;
+    --color-gray-900: #0f172a;
+
+    /* Semantic Colors */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* Semantic Colors - Surface & Text */
+    --color-bg-default: var(--color-gray-50);
+    --color-bg-surface: #ffffff;
+    --color-border: var(--color-gray-200);
+    --color-text-primary: var(--color-gray-900);
+    --color-text-secondary: var(--color-gray-500);
+
+    /* Typography */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Syne', system-ui, sans-serif;
+
+    /* Spacing & Layout */
+    --header-height: 64px;
+    --sidebar-width: 260px;
+    --sidebar-width-collapsed: 72px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+    /* Primary Colors - Adjusted for Dark Mode (Lighter/Brighter for text/accents, but keeping scale direction) */
+    --color-primary-50: #0f2942;
+    /* Darkest Blue */
+    --color-primary-100: #15365a;
+    --color-primary-200: #1a4f8a;
+    --color-primary-300: #2465a7;
+    --color-primary-400: #569dd6;
+    --color-primary-500: #8cbfe6;
+    /* Lighter for visibility on dark */
+    --color-primary-600: #bad8f0;
+    --color-primary-700: #d9eaf7;
+    --color-primary-800: #eef6fc;
+    --color-primary-900: #f8fafc;
+    /* Lightest Blue */
+
+    /* Semantic Colors */
+    --color-success: #34d399;
+    --color-warning: #fbbf24;
+    --color-error: #f87171;
+    --color-info: #60a5fa;
+
+    /* Semantic Overrides for Dark Mode */
+    --color-bg-default: var(--color-gray-900);
+    /* #0f172a */
+    --color-bg-surface: var(--color-gray-800);
+    /* #1e293b */
+    --color-border: var(--color-gray-700);
+    /* #334155 */
+    --color-text-primary: var(--color-gray-50);
+    /* #f8fafc */
+    --color-text-secondary: var(--color-gray-400);
+    /* #94a3b8 */
+}
+
+/* Base Reset & Typography */
+body {
+    font-family: var(--font-sans);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-default);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 2.25rem;
+    letter-spacing: -0.025em;
+}
+
+h2 {
+    font-size: 1.875rem;
+    letter-spacing: -0.025em;
+}
+
+h3 {
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+/* Components */
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: 1px solid transparent;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background-color: var(--color-primary-500);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-600);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background-color: var(--color-bg-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-bg-default);
+    border-color: var(--color-gray-400);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
+    background-color: var(--color-bg-default);
+    color: var(--color-text-primary);
+}
+
+/* Inputs */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.input::placeholder {
+    color: var(--color-text-secondary);
+}
+
+/* Cards */
+.card {
+    background-color: var(--color-bg-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+}
+
+.card-header {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+/* Tables */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.table th {
+    background-color: var(--color-bg-default);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover td {
+    background-color: var(--color-bg-default);
+}
+
+/* Badges / Status */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Layout Utilities */
+.layout-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--color-gray-900);
+    color: white;
+    flex-shrink: 0;
+    transition: width var(--transition-normal);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-gray-50);
+    min-width: 0;
+}
+
+.header {
+    height: var(--header-height);
+    background-color: white;
+    border-bottom: 1px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    justify-content: space-between;
+}
+
+.content-wrapper {
+    padding: 2rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn var(--transition-normal) forwards;
+}

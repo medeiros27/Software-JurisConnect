@@ -1,0 +1,14 @@
+node_modules/
+postgres/
+backup/
+.env
+dist/
+build/
+*.log
+*.zip
+*.tar.gz
+*.rar
+migrations/
+coverage/
+.DS_Store
+Thumbs.db

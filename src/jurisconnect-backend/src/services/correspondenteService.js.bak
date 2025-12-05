@@ -1,0 +1,316 @@
+const { Correspondente, Demanda } = require('../models');
+const { executeWithRetry } = require('../utils/dbHelpers');
+const AppError = require('../utils/AppError');
+const logger = require('../utils/logger');
+const { validateRequiredFields, isValidEmail, isValidCPF, isValidCNPJ } = require('../utils/validators');
+const { Op } = require('sequelize');
+
+/**
+ * Correspondente Service
+ * Business logic for correspondent management
+ */
+class CorrespondenteService {
+    /**
+     * List correspondentes with filtering and pagination
+     */
+    async list(filters = {}, pagination = {}) {
+        const {
+            tipo,
+            estado_sediado,
+            cidade_sediado,
+            ativo,
+            search,
+        } = filters;
+
+        const {
+            page = 1,
+            limit = 20,
+            sortBy = 'nome_fantasia',
+            sortOrder = 'ASC',
+        } = pagination;
+
+        const offset = (page - 1) * limit;
+        const where = {};
+
+        // Build where conditions
+        if (tipo) where.tipo = tipo;
+        if (estado_sediado) where.estado_sediado = estado_sediado;
+        if (cidade_sediado) where.cidade_sediado = { [Op.iLike]: `%${cidade_sediado}%` };
+        if (ativo !== undefined) where.ativo = ativo;
+
+        if (search) {
+            where[Op.or] = [
+                { nome_fantasia: { [Op.iLike]: `%${search}%` } },
+                { email: { [Op.iLike]: `%${search}%` } },
+                { cpf_cnpj: { [Op.iLike]: `%${search}%` } },
+                { oab_numero: { [Op.iLike]: `%${search}%` } },
+            ];
+        }
+
+        try {
+            const { count, rows } = await executeWithRetry(() =>
+                Correspondente.findAndCountAll({
+                    where,
+                    limit: parseInt(limit),
+                    offset,
+                    order: [[sortBy, sortOrder]],
+                })
+            );
+
+            return {
+                correspondentes: rows,
+                pagination: {
+                    total: count,
+                    page: parseInt(page),
+                    pages: Math.ceil(count / limit),
+                    limit: parseInt(limit),
+                },
+            };
+        } catch (error) {
+            logger.logError(error, { method: 'CorrespondenteService.list', filters, pagination });
+            throw AppError.database('Erro ao listar correspondentes', error);
+        }
+    }
+
+    /**
+     * Get single correspondente by ID
+     */
+    async getById(id) {
+        if (!id) {
+            throw AppError.badRequest('ID é obrigatório');
+        }
+
+        try {
+            const correspondente = await executeWithRetry(() =>
+                Correspondente.findByPk(id, {
+                    include: [
+                        {
+                            association: 'demandas',
+                            attributes: ['id', 'numero', 'titulo', 'status', 'data_prazo', 'valor_estimado'],
+                            limit: 10,
+                            order: [['created_at', 'DESC']],
+                        },
+                    ],
+                })
+            );
+
+            if (!correspondente) {
+                throw AppError.notFound('Correspondente');
+            }
+
+            return correspondente;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+            logger.logError(error, { method: 'CorrespondenteService.getById', id });
+            throw AppError.database('Erro ao buscar correspondente', error);
+        }
+    }
+
+    /**
+     * Create new correspondente
+     */
+    async create(data) {
+        // Validate required fields
+        const validation = validateRequiredFields(data, ['nome_fantasia', 'email']);
+        if (!validation.isValid) {
+            throw AppError.validation(`Campos obrigatórios faltando: ${validation.missing.join(', ')}`);
+        }
+
+        // Validate email
+        if (!isValidEmail(data.email)) {
+            throw AppError.validation('Email inválido');
+        }
+
+        // Validate CPF/CNPJ if provided
+        if (data.cpf_cnpj) {
+            const cleaned = data.cpf_cnpj.replace(/\D/g, '');
+            if (cleaned.length === 11 && !isValidCPF(data.cpf_cnpj)) {
+                throw AppError.validation('CPF inválido');
+            } else if (cleaned.length === 14 && !isValidCNPJ(data.cpf_cnpj)) {
+                throw AppError.validation('CNPJ inválido');
+            }
+        }
+
+        // Validate OAB for advogados
+        if (data.tipo === 'advogado') {
+            if (!data.oab_numero) {
+                throw AppError.validation('Número da OAB é obrigatório para advogados');
+            }
+            if (!data.oab_estado) {
+                throw AppError.validation('Estado da OAB é obrigatório para advogados');
+            }
+        }
+
+        try {
+            const correspondente = await executeWithRetry(() =>
+                Correspondente.create({
+                    ...data,
+                    ativo: data.ativo !== undefined ? data.ativo : true,
+                })
+            );
+
+            logger.info(`Correspondente created: ${correspondente.nome_fantasia}`, { id: correspondente.id });
+
+            return correspondente;
+        } catch (error) {
+            logger.logError(error, { method: 'CorrespondenteService.create', data });
+
+            // Handle unique constraint errors
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                throw AppError.conflict('Email ou CPF/CNPJ já cadastrado');
+            }
+
+            throw AppError.database('Erro ao criar correspondente', error);
+        }
+    }
+
+    /**
+     * Update correspondente
+     */
+    async update(id, data) {
+        const correspondente = await this.getById(id);
+
+        // Validate email if changed
+        if (data.email && data.email !== correspondente.email) {
+            if (!isValidEmail(data.email)) {
+                throw AppError.validation('Email inválido');
+            }
+        }
+
+        // Validate OAB for advogados
+        const tipoFinal = data.tipo || correspondente.tipo;
+        if (tipoFinal === 'advogado') {
+            const oabNumero = data.oab_numero !== undefined ? data.oab_numero : correspondente.oab_numero;
+            const oabEstado = data.oab_estado !== undefined ? data.oab_estado : correspondente.oab_estado;
+
+            if (!oabNumero) {
+                throw AppError.validation('Número da OAB é obrigatório para advogados');
+            }
+            if (!oabEstado) {
+                throw AppError.validation('Estado da OAB é obrigatório para advogados');
+            }
+        }
+
+        try {
+            await executeWithRetry(() => correspondente.update(data));
+
+            logger.info(`Correspondente updated: ${correspondente.nome_fantasia}`, { id });
+
+            return await this.getById(id);
+        } catch (error) {
+            logger.logError(error, { method: 'CorrespondenteService.update', id, data });
+
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                throw AppError.conflict('Email ou CPF/CNPJ já cadastrado');
+            }
+
+            throw AppError.database('Erro ao atualizar correspondente', error);
+        }
+    }
+
+    /**
+     * Delete correspondente
+     */
+    async delete(id) {
+        const correspondente = await this.getById(id);
+
+        // Check if has linked demands
+        const demandCount = await Demanda.count({ where: { correspondente_id: id } });
+
+        if (demandCount > 0) {
+            throw AppError.badRequest(
+                `Correspondente possui ${demandCount} demanda(s) vinculada(s) e não pode ser excluído`
+            );
+        }
+
+        try {
+            await executeWithRetry(() => correspondente.destroy());
+
+            logger.info(`Correspondente deleted: ${correspondente.nome_fantasia}`, { id });
+
+            return { message: 'Correspondente excluído com sucesso' };
+        } catch (error) {
+            logger.logError(error, { method: 'CorrespondenteService.delete', id });
+            throw AppError.database('Erro ao deletar correspondente', error);
+        }
+    }
+
+    /**
+     * Toggle ativo status
+     */
+    async toggleAtivo(id) {
+        const correspondente = await this.getById(id);
+
+        try {
+            await executeWithRetry(() =>
+                correspondente.update({ ativo: !correspondente.ativo })
+            );
+
+            logger.info(`Correspondente status changed: ${correspondente.nome_fantasia}`, {
+                id,
+                ativo: !correspondente.ativo,
+            });
+
+            return correspondente;
+        } catch (error) {
+            logger.logError(error, { method: 'CorrespondenteService.toggleAtivo', id });
+            throw AppError.database('Erro ao alterar status', error);
+        }
+    }
+
+    /**
+     * Get statistics
+     */
+    async getStatistics() {
+        try {
+            const [total, ativos, inativos, advogados, prepostos, demandasAbertas] = await Promise.all([
+                Correspondente.count(),
+                Correspondente.count({ where: { ativo: true } }),
+                Correspondente.count({ where: { ativo: false } }),
+                Correspondente.count({ where: { tipo: 'advogado' } }),
+                Correspondente.count({ where: { tipo: 'preposto' } }),
+                Demanda.count({
+                    where: {
+                        correspondente_id: { [Op.not]: null },
+                        status: { [Op.notIn]: ['concluida', 'cancelada'] },
+                        prepostos,
+                        demandas_abertas: demandasAbertas,
+                        top_correspondentes: topCorrespondentes,
+                    };
+                } catch (error) {
+                    logger.logError(error, { method: 'CorrespondenteService.getStatistics' });
+                    throw AppError.database('Erro ao calcular estatísticas', error);
+                }
+        }
+
+    /**
+     * Get demands by correspondente
+     */
+    async getDemandsBycorrespondente(id) {
+            const correspondente = await this.getById(id);
+
+            try {
+                const demandas = await executeWithRetry(() =>
+                    Demanda.findAll({
+                        where: { correspondente_id: id },
+                        include: [{ association: 'cliente', attributes: ['nome_fantasia'] }],
+                        order: [['created_at', 'DESC']],
+                    })
+                );
+
+                return {
+                    correspondente: {
+                        id: correspondente.id,
+                        nome_fantasia: correspondente.nome_fantasia,
+                    },
+                    demandas,
+                    total: demandas.length,
+                };
+            } catch (error) {
+                logger.logError(error, { method: 'CorrespondenteService.getDemandsByCorrespondente', id });
+                throw AppError.database('Erro ao buscar demandas', error);
+            }
+        }
+    }
+
+module.exports = new CorrespondenteService();

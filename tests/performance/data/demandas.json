@@ -1,0 +1,32 @@
+[
+    {
+        "cliente_id": 1,
+        "correspondente_id": 1,
+        "titulo": "Ação de Cobrança - Teste Performance",
+        "descricao": "Demanda criada durante teste de performance",
+        "tipo_demanda": "judicial",
+        "status": "pendente",
+        "prioridade": "media",
+        "data_abertura": "2025-01-15"
+    },
+    {
+        "cliente_id": 1,
+        "correspondente_id": 1,
+        "titulo": "Recurso Especial - Teste",
+        "descricao": "Teste de carga",
+        "tipo_demanda": "judicial",
+        "status": "pendente",
+        "prioridade": "alta",
+        "data_abertura": "2025-01-16"
+    },
+    {
+        "cliente_id": 1,
+        "correspondente_id": 1,
+        "titulo": "Petição Inicial - Teste",
+        "descricao": "Teste de performance",
+        "tipo_demanda": "extrajudicial",
+        "status": "pendente",
+        "prioridade": "baixa",
+        "data_abertura": "2025-01-17"
+    }
+]

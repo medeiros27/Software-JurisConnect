@@ -1,0 +1,8 @@
+tunnel: 8b280fb2-d01c-4e2b-994a-9bb93bf45fbe
+credentials-file: C:\Users\Bruno\.cloudflared\8b280fb2-d01c-4e2b-994a-9bb93bf45fbe.json
+
+ingress:
+  - hostname: app.jurisconnect.com.br
+    service: http://localhost:5173
+  - service: http_status:404
+

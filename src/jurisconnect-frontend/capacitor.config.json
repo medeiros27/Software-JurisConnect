@@ -1,0 +1,8 @@
+{
+    "appId": "com.jurisconnect.app",
+    "appName": "JurisConnect",
+    "webDir": "dist",
+    "server": {
+        "androidScheme": "https"
+    }
+}
